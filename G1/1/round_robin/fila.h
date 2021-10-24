@@ -1,14 +1,11 @@
-typedef struct fila Fila {
-    int num_elementos;
-    Processo* primeiro_no;
-    Processo* ultimo_no;
-} Fila;
-
 enum status {PRONTO, ESPERA, EXECUTANDO};
 
-typedef struct processo Processo{
-    int pid;
-    enum status status; // p=pronto, w=espera,e=executando
-    char* programa;
-    Processo* proximo_no;
-}Processo;
+typedef struct processo* Processo;
+typedef struct fila* Fila;
+
+Processo* CriaProcesso(int pid, char* programa);
+Fila* CriaFila();
+int FilaVazia(Fila* f);
+Processo* ExecutaProcesso(Fila* f);
+void InsereProcesso(Fila* f, Processo* p);
+void atualizaProcesso(Processo* p, enum status status);
