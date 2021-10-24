@@ -1,30 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "fila.h"
 
-typedef struct fila Fila;
-struct fila {
-    int num_elementos;
-    Processo* primeiro_no;
-    Processo* ultimo_no;
-};
+// typedef struct fila Fila;
+// struct fila {
+//     int num_elementos;
+//     Processo* primeiro_no;
+//     Processo* ultimo_no;
+// };
 
-typedef struct processo Processo;
-struct processo {
-    int pid;
-    char status; // p=pronto, w=espera,e=executando
-    char* programa;
-    Processo* proximo_no;
-};
+// enum status {PRONTO, ESPERA, EXECUTANDO};
+
+// typedef struct processo Processo;
+// struct processo {
+//     int pid;
+//     enum status status;
+//     char* programa;
+//     Processo* proximo_no;
+// };
+
 
 Processo* CriaProcesso(int pid, char* programa){
     Processo* new = (Processo*) malloc (sizeof(Processo));
     new->pid = pid;
-    new->status = 'p';
+    new->status = PRONTO;
     new->proximo_no = NULL;
     return new;
 }
 
- Fila* CriaFila(){
+
+Fila* CriaFila(){
     Fila* f = (Fila*) malloc (sizeof( Fila));
     f->num_elementos = 0;
     f->primeiro_no = NULL;
@@ -41,7 +46,7 @@ int FilaVazia(Fila* f){
 }
 
 
-Fila* InsereProcesso( Fila* f, Processo* p){
+Fila* InsereProcesso(Fila* f, Processo* p){
     p->proximo_no = NULL;
     f->ultimo_no->proximo_no = p;
 

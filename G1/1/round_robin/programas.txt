@@ -1,0 +1,5 @@
+Run < programa1.c >
+Run < programa2.c >
+Run < programa3.c >
+Run < programa4.c >
+Run < programa5.c >

@@ -1,11 +1,14 @@
-struct fila {
+typedef struct fila Fila {
     int num_elementos;
-    struct processo* primeiro_no;
-    struct processo* ultimo_no;
+    Processo* primeiro_no;
+    Processo* ultimo_no;
+} Fila;
 
-} fila;
+enum status {PRONTO, ESPERA, EXECUTANDO};
 
-struct processo {
+typedef struct processo Processo{
     int pid;
-    processo* proximo_no;
-}processo;
+    enum status status; // p=pronto, w=espera,e=executando
+    char* programa;
+    Processo* proximo_no;
+}Processo;
