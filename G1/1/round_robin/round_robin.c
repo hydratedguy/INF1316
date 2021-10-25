@@ -55,7 +55,8 @@ int main (){
 
 	} else if (id == 0) {
         // signal(SIGKILL, essa)
-		pid = wait (&status);
+		// pid = wait (&status);
+        printf("INTERPRETADOR\n");
 
         fscanf(programas, "Run < %s > ", prog);
         sleep(1);

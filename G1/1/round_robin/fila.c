@@ -1,30 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "fila.h"
 
-struct Processo{
+enum status {PRONTO, ESPERA, EXECUTANDO};
+
+typedef struct fila Fila;
+struct fila {
+    int num_elementos;
+    struct processo* primeiro_no;
+    struct processo* ultimo_no;
+};
+
+typedef struct processo Processo;
+struct processo {
     int pid;
     enum status status; // p=pronto, w=espera,e=executando
     char* programa;
     Processo* proximo_no;
 };
 
-struct Fila{
-    int num_elementos;
-    Processo* primeiro_no;
-    Processo* ultimo_no;
-}; 
-
 Processo* CriaProcesso(int pid, char* programa){
     Processo* new = (Processo*) malloc (sizeof(Processo));
-    new.pid = pid;
+    new->pid = pid;
     new->status = PRONTO;
     new->proximo_no = NULL;
     return new;
 }
 
-
-Fila* CriaFila(){
+ Fila* CriaFila(){
     Fila* f = (Fila*) malloc (sizeof( Fila));
     f->num_elementos = 0;
     f->primeiro_no = NULL;
@@ -41,7 +43,7 @@ int FilaVazia(Fila* f){
 }
 
 
-void InsereProcesso(Fila* f, Processo* p){
+Fila* InsereProcesso( Fila* f, Processo* p){
     p->proximo_no = NULL;
     f->ultimo_no->proximo_no = p;
 
@@ -49,25 +51,7 @@ void InsereProcesso(Fila* f, Processo* p){
         f->primeiro_no = f->ultimo_no;
     }
     f->num_elementos++;
-}
-
-
-// Processo* RemoveProcesso(Fila* f){
-//     if(FilaVazia(f)){
-//         return -1;
-//     }
-//     int ret_pid;
-
-//     Processo* retirado = f->primeiro_no;
-
-//     f->primeiro_no = f->primeiro_no->proximo_no;
-//     f->num_elementos--;
-    
-//     return retirado;
-// }
-
-void MataProcesso(Processo* p){// necessario??
-    free(p);
+    return f;
 }
 
 void atualizaProcesso(Processo* p, enum status status) {
@@ -75,13 +59,28 @@ void atualizaProcesso(Processo* p, enum status status) {
 }
 
 
+int RemoveProcesso(Fila* f){
+    if(FilaVazia(f)){
+        return -1;
+    }
+    int ret_pid;
+
+    Processo* retirado = f->primeiro_no;
+
+    f->primeiro_no = f->primeiro_no->proximo_no;
+    f->num_elementos--;
+    
+    free(retirado);
+    return ret_pid;
+}
+
 Processo* ExecutaProcesso(Fila* f){
     if(FilaVazia(f)){
         return -1;
     }
 
     Processo* executado = f->primeiro_no;
-    
+
     f->primeiro_no = f->primeiro_no->proximo_no;
 
     f->ultimo_no->proximo_no = executado;
@@ -89,4 +88,3 @@ Processo* ExecutaProcesso(Fila* f){
     f->ultimo_no = executado;
     return executado;
 }
-
