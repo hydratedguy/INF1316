@@ -5,7 +5,8 @@
 // CPU BOUND
 
 int main(){
-    for(int i = 0;i < 10000; i++){
+    for(int i = 0;; i++){
         printf("programa1 executando; tempo = %d\n", i);
     }
+    return 0;
 }

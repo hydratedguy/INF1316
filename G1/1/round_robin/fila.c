@@ -15,7 +15,7 @@ struct fila {
 struct processo {
     int pid;
     enum status status; // p=pronto, w=espera,e=executando
-    char programa[10];
+    char programa[9];
     Processo* proximo_no;
 };
 
@@ -54,16 +54,18 @@ Processo* CopiaProcesso(Processo* p){
 
 
 void InsereProcesso(Fila* f, Processo* p){
-    Processo* new = CopiaProcesso(p);
+    if (p){
+       Processo* new = CopiaProcesso(p);
 
-    if (f->num_elementos >= 1) {
-        f->ultimo_no->proximo_no = new;
-    } else {
-        f->primeiro_no = new;
+        if (f->num_elementos >= 1) {
+            f->ultimo_no->proximo_no = new;
+        } else {
+            f->primeiro_no = new;
+        }
+
+        f->ultimo_no = new;
+        f->num_elementos++;
     }
-
-    f->ultimo_no = new;
-    f->num_elementos++;
 }
 
 
