@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 enum status {NOVO, PRONTO, ESPERA};
 typedef struct fila Fila;
 typedef struct processo Processo;
@@ -15,7 +15,7 @@ struct fila {
 struct processo {
     int pid;
     enum status status; // p=pronto, w=espera,e=executando
-    char* programa;
+    char programa[10];
     Processo* proximo_no;
 };
 
@@ -30,7 +30,7 @@ void printa_fila(Fila* f){
 Processo* CriaProcesso(int pid, char* programa){
     Processo* new = (Processo*) malloc (sizeof(Processo));
     new->pid = pid;
-    new->programa = programa;
+    strcpy(new->programa, programa);
     new->status = NOVO;
     new->proximo_no = NULL;
     return new;

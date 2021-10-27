@@ -62,16 +62,15 @@ int main (){
     int segmento;
     Fila* fila_prontos = CriaFila();
     segmento = shmget (IPC_PRIVATE, 6*sizeof (char *), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-    prog = (struct p *) shmat (segmento, 0, 0);
+    prog = (char **) shmat (segmento, 0, 0);
 
     while(1) {
         printf("");
         if (i!=5){  // adiciona processo à lista de prontos
             Processo* processo = CriaProcesso(1, prog[i]); // Criacao da struct processo - pid default 1
-            printf("a %d %s\n",i,prog->a[i]);
+            printf("a %d %s\n",i,prog[i]);
             InsereProcesso(fila_prontos, processo);
 
-            i++;
             printa_fila(fila_prontos);
 
         }

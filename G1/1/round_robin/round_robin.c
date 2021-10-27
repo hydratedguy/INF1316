@@ -58,8 +58,9 @@ int InicializaProcesso (char* nome_programa, char** args) {
         execv(nome_programa, args);
 
 	} else { // Pai
+        sleep(1);
 		kill(pid, SIGSTOP);
-		// sleep(1);
+		
 	}
 
 	return pid;
@@ -69,19 +70,14 @@ int InicializaProcesso (char* nome_programa, char** args) {
 // };
 
 int main (){
-    // struct prog_nome* prog = (struct prog_nome *) malloc (sizeof(struct prog_nome));
     char* prog;
-    char prog_exec[11];
-    char ultimo_prog[] = "programax";
+    
     int id, pid, segmento;
 
     segmento = shmget (IPC_PRIVATE,10*sizeof (char*), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
     prog = (char *) shmat (segmento, 0, 0);
     
-    FILE* programas;
-    programas = fopen("programas.txt", "r");
-    Fila* fila_prontos = CriaFila();
-    Fila* fila_espera = CriaFila();
+    char ultimo_prog[] = "programax";
     strcpy(prog, ultimo_prog);
 
     if ((id = fork()) < 0) { // Cria INTERPRETADOR e ESCALONADOR
@@ -90,65 +86,69 @@ int main (){
 		exit (-2);
 
 	} else if (id == 0) { // INTERPRETADOR (filho)
+        FILE* programas;
+        programas = fopen("programas.txt", "r");
 
         while (!feof(programas)) {
             fscanf(programas, "Run < %s > ", prog);
             printf("lido %s\n",prog);
-            sleep(1);
+            sleep(2);
         }
 
 	} else { // ESCALONADOR (pai)
-            
+        Fila* fila_prontos = CriaFila();
+        Fila* fila_espera = CriaFila();  
+        char prog_exec[11];
+
         while(1) {
             if (strcmp(prog, ultimo_prog) != 0){  // Adiciona processo à lista de prontos
                 printf("Colocando %s na fila\n", prog);
-                // strcpy(prog_exec, prog);
 
                 Processo* processo = CriaProcesso(1, prog); // Criacao da struct processo - pid default 1
-                // printf("ult %s prog %s\n",ultimo_prog,prog);
 
                 InsereProcesso(fila_prontos, processo);
-                sleep(1);
                 printa_fila(fila_prontos);
                 strcpy(ultimo_prog, prog);
 
             }
             if(fila_espera->num_elementos>0){
-                if(fila_espera->primeiro_no->status == 1){
-                    printf("Colocando %s na fila\n", prog);
-                    strcpy(prog_exec, prog);
-
-                    Processo* processo = CriaProcesso(1, prog_exec); // Criacao da struct processo - pid default 1
-                    // printf("ult %s prog %s\n",ultimo_prog,prog);
-
-                    InsereProcesso(fila_prontos, processo);
-                    sleep(1);
+                printf("num era pra passar aqui\n");
+                Processo* sai_espera = fila_espera->primeiro_no;
+                if(sai_espera -> status == 1){
+                    printf("Colocando %s na fila de prontos\n", prog);
+                    InsereProcesso(fila_prontos, sai_espera);
                     printa_fila(fila_prontos);
-                    strcpy(ultimo_prog, prog);
                 }
             }
             if (fila_prontos->num_elementos > 0){
-                Processo* processo_executado;
-                if (fila_prontos->primeiro_no->status == 0){ //  Inicializa novo processo
-                    processo_executado = RemoveProcesso(fila_prontos);
+                Processo* processo_executado = fila_prontos->primeiro_no ;
 
+                if (processo_executado->status == 0){ //  Inicializa novo processo
+                    processo_executado = RemoveProcesso(fila_prontos);
+                    // printf("%s vai ser inicializado\n",processo_executado->programa);//ta dando erro n sei pq
                     strcpy(prog_exec, "./");
                     strcat(prog_exec, prog);
                     char* args[2]= {prog_exec, NULL};
+
                     pid = InicializaProcesso(prog, args); // execucao do fork()
+
                     processo_executado->pid = pid;
                     processo_executado->status = 1;
 
                     InsereProcesso(fila_prontos, CopiaProcesso(processo_executado));
                     printa_fila(fila_prontos);
                     
-                } else if (fila_prontos->primeiro_no->status == 1) { // Continua execução do processo
+                } else if (processo_executado->status == 1 ) { // Continua execução do processo
                     processo_executado = RemoveProcesso(fila_prontos);
-                    printf("retorno %d\n", kill(processo_executado->pid, 0));
-                    if(kill(processo_executado->pid, SIGCONT) == -1) {
+                    int a = kill(processo_executado->pid, SIGCONT);
+                    printf("a:%d\n",processo_executado->pid);
+                    if( a == -1) {
+                        printf("a:%d\n",a);
+                        printf("processo acabou\n");
                         free(processo_executado);
                     } else {
-                        sleep(1);
+                        // kill(processo_executado->pid, SIGCONT);
+                        sleep(QUANTUM);
                         kill(processo_executado->pid, SIGSTOP);
                         if(signal(SIGUSR1,ALARM_HANDLER) == SIG_ERR) {
                             printf("aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n");
