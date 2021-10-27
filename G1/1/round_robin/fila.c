@@ -1,16 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum status {PRONTO, ESPERA, EXECUTANDO};
-
+enum status {NOVO, PRONTO, ESPERA};
 typedef struct fila Fila;
+typedef struct processo Processo;
+
+
 struct fila {
     int num_elementos;
-    struct processo* primeiro_no;
-    struct processo* ultimo_no;
+    Processo* primeiro_no;
+    Processo* ultimo_no;
 };
 
-typedef struct processo Processo;
 struct processo {
     int pid;
     enum status status; // p=pronto, w=espera,e=executando
@@ -18,10 +19,19 @@ struct processo {
     Processo* proximo_no;
 };
 
+
+void printa_fila(Fila* f){
+    for (Processo* p = f->primeiro_no; p != NULL; p = p->proximo_no) {
+        printf("%s, ", p->programa);
+    }
+    printf("\n");
+}
+
 Processo* CriaProcesso(int pid, char* programa){
     Processo* new = (Processo*) malloc (sizeof(Processo));
     new->pid = pid;
-    new->status = PRONTO;
+    new->programa = programa;
+    new->status = NOVO;
     new->proximo_no = NULL;
     return new;
 }
@@ -34,57 +44,59 @@ Processo* CriaProcesso(int pid, char* programa){
     return f;
 }
 
-
-int FilaVazia(Fila* f){
-    if(f->num_elementos == 0){
-        return 1;
-    }
-    return 0;
+Processo* CopiaProcesso(Processo* p){
+	Processo *novo;
+	novo = CriaProcesso(p->pid, p->programa);
+	novo->status = p->status;
+	novo->proximo_no = NULL;
+	return novo;
 }
 
 
-Fila* InsereProcesso( Fila* f, Processo* p){
-    p->proximo_no = NULL;
-    f->ultimo_no->proximo_no = p;
+void InsereProcesso(Fila* f, Processo* p){
+    Processo* new = CopiaProcesso(p);
 
-    if(FilaVazia(f)){
-        f->primeiro_no = f->ultimo_no;
+    if (f->num_elementos >= 1) {
+        f->ultimo_no->proximo_no = new;
+    } else {
+        f->primeiro_no = new;
     }
+
+    f->ultimo_no = new;
     f->num_elementos++;
-    return f;
-}
-
-void atualizaProcesso(Processo* p, enum status status) {
-    p->status = status;
 }
 
 
-int RemoveProcesso(Fila* f){
-    if(FilaVazia(f)){
-        return -1;
+Processo* RemoveProcesso(Fila* f){
+    
+    if(f->num_elementos <= 0) {
+        printf("num elementos da fila = %d\n", f->num_elementos);
+        return NULL;
     }
-    int ret_pid;
 
     Processo* retirado = f->primeiro_no;
 
-    f->primeiro_no = f->primeiro_no->proximo_no;
-    f->num_elementos--;
-    
-    free(retirado);
-    return ret_pid;
-}
+    // Processo* new = (Processo*) malloc (sizeof(Processo));
 
-Processo* ExecutaProcesso(Fila* f){
-    if(FilaVazia(f)){
-        return -1;
+    // new->pid = retirado->pid;
+    // new->programa = retirado->programa;
+    // new->status = 1;
+    // new->proximo_no = NULL;
+
+    if (f->num_elementos > 1) {
+        f->primeiro_no = retirado->proximo_no;
+        retirado->proximo_no = NULL;
+
+    } else {
+
+        f->primeiro_no = NULL;
+        f->ultimo_no = NULL;
     }
 
-    Processo* executado = f->primeiro_no;
+    f->num_elementos--;
+    // free(retirado);
 
-    f->primeiro_no = f->primeiro_no->proximo_no;
-
-    f->ultimo_no->proximo_no = executado;
-    executado->proximo_no = NULL;
-    f->ultimo_no = executado;
-    return executado;
+    
+    return retirado;
 }
+

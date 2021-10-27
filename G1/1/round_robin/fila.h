@@ -1,11 +1,11 @@
 enum status {PRONTO, ESPERA, EXECUTANDO};
 
-typedef struct processo* Processo;
-typedef struct fila* Fila;
+typedef struct fila Fila;
+typedef struct processo Processo;
 
 Processo* CriaProcesso(int pid, char* programa);
 Fila* CriaFila();
-int FilaVazia(Fila* f);
-Processo* ExecutaProcesso(Fila* f);
 void InsereProcesso(Fila* f, Processo* p);
-void atualizaProcesso(Processo* p, enum status status);
+Processo* RemoveProcesso(Fila* f);
+void printa_fila(Fila* f);
+Processo* CopiaProcesso(Processo* p);
