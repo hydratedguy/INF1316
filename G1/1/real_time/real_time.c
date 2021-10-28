@@ -69,9 +69,23 @@ void IOHandler(int sinal, int pid, Processo* p){
 
 struct Infoprog{
     char nome[9];
-    char* ti;
+    char ti[4];
     int duracao;
 };
+
+char *strremove(char *str, const char *sub) {
+    size_t len = strlen(sub);
+    if (len > 0) {
+        char *p = str;
+        while ((p = strstr(p, sub)) != NULL) {
+            memmove(p, p + len, strlen(p + len) + 1);
+        }
+    }
+    return str;
+}
+
+
+
 
 int main (){
     
@@ -82,10 +96,10 @@ int main (){
     segmento = shmget (IPC_PRIVATE, sizeof (Infoprog*), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
     prog = (Infoprog*) shmat (segmento, 0, 0);
     strcpy( prog->nome , "programax");
-    prog->ti= "P1";
+    strcpy(prog->ti,"P1");
     prog->duracao= -1;
     printf("%s %s %d\n", prog->nome, prog->ti, prog->duracao);
-
+    
     if ((id = fork()) < 0) { // Cria INTERPRETADOR e ESCALONADOR
         
 		printf ("Erro na criação do novo processo\n");
@@ -99,9 +113,33 @@ int main (){
             exit(0);
         }
         while (!feof(programas)) {
-            int i;
-            fscanf(programas, " Run < %s > I=< %s > D=< %d > \n", prog->nome, prog->ti, &i);
-            printf("lido %s %s %d\n", prog->nome, prog->ti, i);
+            char line[80];
+            int i=0;
+            // int k=fscanf(programas, "Run <%s> I=<%s> D=<%d >\n", prog->nome, prog->ti, &i);
+            fscanf(programas, "Run %[^\n] ", line);
+            printf("Line = %s \n", line);
+            //Remove caracteres
+            strremove(line, "<");
+            strremove(line,"=");
+            strremove(line,">");
+            strremove(line,"I");
+            strremove(line,"D");
+            printf("Line = %s \n", line);
+
+            char* aux = strtok(line," ");
+            printf("%s\n",aux);
+            strcpy(prog->nome,aux);
+
+            aux = strtok(NULL," ");
+            printf("%s\n",aux);
+            strcpy(prog->ti,aux);
+
+            aux = strtok(NULL,"");
+            printf("%s\n",aux);
+            prog->duracao = atoi(aux);
+
+            printf("lido %s %s %d\n", prog->nome,prog->ti, prog->duracao);
+            
             sleep(1);
         }
         fclose(programas);
