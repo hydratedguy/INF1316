@@ -63,18 +63,16 @@ int InicializaProcesso (char** args) {
         execv(executando->programa, args);
 
 	} else { // Pai
-        sleep(1);
+        executando->pid = pid;
+        sleep(QUANTUM);
 		kill(pid, SIGSTOP);
-		int a = kill(pid, 0);
-        printf("a:%d\n",a);
         gettimeofday(&stop,NULL);
-        printf("Tempo de exec 1: %.10f \n",timedifference_msec(start,stop));
+        printf("Tempo de exec %s : %.10f \n",executando->programa,timedifference_msec(start,stop));
+        
 
 	}
-
 	return executando->pid;
 }
-
 
 
 int main (){
@@ -87,7 +85,9 @@ int main (){
     
     char ultimo_prog[] = "programax";
     strcpy(prog, "");
-    signal(SIGCHLD,CHILD_HANDLER);
+
+    signal(SIGTTOU,CHILD_HANDLER);
+
     if ((id = fork()) < 0) { // Cria INTERPRETADOR e ESCALONADOR
         
 		printf ("Erro na criação do novo processo\n");
@@ -123,7 +123,6 @@ int main (){
 
             }
             if(fila_espera->num_elementos>0){
-                printf("num era pra passar aqui\n");
                 Processo* sai_espera = fila_espera->primeiro_no;
                 if(sai_espera -> status == 1){
                     printf("Colocando %s na fila de prontos\n", sai_espera->programa);
@@ -137,13 +136,16 @@ int main (){
                 if (executando->status == 0){ //  Inicializa novo processo
                     char nome[9];
                     strcpy(nome,executando->programa);
-                    printf(" %s vai ser inicializado\n",nome);//ta dando erro n sei pq
+                    printf("%s vai ser inicializado\n",nome);//ta dando erro n sei pq
                     strcpy(prog_exec, "./");
                     strcat(prog_exec, nome);
                     char* args[2]= {prog_exec, NULL};
 
                     pid = InicializaProcesso(args); // execucao do fork()
-                    if(pid == -1){
+                    printf("pid pos inicializado %d\n",pid);
+                    if(pid < 0){
+                        executando = NULL;
+                    }else{
                         executando->pid = pid;
                         executando->status = 1;
                         InsereProcesso(fila_prontos, CopiaProcesso(executando));
@@ -152,27 +154,20 @@ int main (){
                     
                 } else if (executando->status == 1 ) { // Continua execução do processo
                     int b = kill(executando->pid, 0);
-                    printf("b:%d\n",b);
-                    if( b != 0 ) {
-                        printf("c:%d\n",b);
-                        printf("processo %s acabou\n",executando->programa);
-                        free(executando);
-                    } else {
-                        printf("processo %s vai continuar\n",executando->programa);
-                        gettimeofday(&start,NULL);
-                        kill(executando>pid, SIGCONT);
-                        sleep(QUANTUM);
-                        kill(executando->pid, SIGSTOP);
-                        gettimeofday(&stop,NULL);
-                        printf("Tempo de exec 1: %.10f \n",timedifference_msec(start,stop));
+                    printf("processo %s vai continuar\n",executando->programa);
+                    gettimeofday(&start,NULL);
+                    kill(executando->pid, SIGCONT);
+                    sleep(QUANTUM);
+                    kill(executando->pid, SIGSTOP);
+                    gettimeofday(&stop,NULL);
+                    printf("Tempo de exec 1: %.10f \n",timedifference_msec(start,stop));
 
-                        printf("processo %s vai para fim da fila\n",executando->programa);
-                       
-                        if (executando != NULL){
-                            InsereProcesso(fila_prontos, CopiaProcesso(executando)); 
-                            printa_fila(fila_prontos);
-                        }
+                    printf("processo %s vai para fim da fila\n",executando->programa);
+                    
+                    if (executando != NULL){
+                        InsereProcesso(fila_prontos, CopiaProcesso(executando)); 
                     }
+                    printa_fila(fila_prontos);
                 } else {
                     break;
                 }
@@ -184,16 +179,9 @@ int main (){
     shmctl (segmento, IPC_RMID, 0);
     return 0;
 }
-void CHILD_HANDLER(int signal){
-    if(signal == 17){ // Processo atual finalizou
-        printf("%s terminou\n", executando->programa);
-        executando->pid = -1;
-        strcpy(executando->programa,"");
-        
-    }
-    // else if(signal == ){
+void CHILD_HANDLER(int signal){//falhou
+        printf("%s pid %d terminou\n", executando->programa,executando->pid);
 
-    // }
 }
 void ALARM_HANDLER(int signal) {
     // Processo* processo_removido = RemoveProcesso(fila_espera);

@@ -5,6 +5,6 @@
 
 int main(){
     for(int i = 0;; i++){
-        // printf("programa2 executando; tempo = %d\n", i);
+        printf("programa3 executando; tempo = %d\n", i);
     }
 }
