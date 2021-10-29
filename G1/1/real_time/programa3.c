@@ -4,7 +4,5 @@
 // CPU BOUND
 
 int main(){
-    for(int i = 0;; i++){
-        printf("programa3 executando; tempo = %d\n", i);
-    }
+    while(1);
 }

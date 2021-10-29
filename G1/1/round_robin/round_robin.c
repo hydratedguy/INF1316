@@ -95,7 +95,7 @@ int main (){
 
 	} else if (id == 0) { // INTERPRETADOR (filho)
         FILE* programas;
-        programas = fopen("programas.txt", "r");
+        programas = fopen("programas/programas.txt", "r");
 
         while (!feof(programas)) {
             fscanf(programas, "Run < %s > ", prog);
@@ -119,7 +119,7 @@ int main (){
                 InsereProcesso(fila_prontos, processo);
                 printa_fila(fila_prontos);
                 strcpy(ultimo_prog, prog);
-                strcpy(prog,"");
+                strcpy(prog, "");
 
             }
             if(fila_espera->num_elementos>0){
