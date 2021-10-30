@@ -25,30 +25,16 @@ struct fila {
 struct processo {
     int pid;
     enum status status;
-    char programa[9];
+    char programa[10];
     Processo* proximo_no;
 };
 
 Processo* executando;
+Fila* fila_espera;
+Fila* fila_prontos;
 
-void IO_Handler(int sinal){
-    // InsereProcesso(fila_espera,);
-    printf("Processo %d entrou em espera\n", executando->programa);
-    sleep(3);
-    
+void IO_HANDLER(int signal);
 
-    // escalonador tira o processo de execucao
-    // processo fica em estado de espera por 3 segundos
-    // ao fim dos 3 segundos, processo manda um sinal
-    // pro escalonador
-    // escalonador coloca o processo no fim da fila
-
-}
-void ALARM_HANDLER(int signal);
-void CHILD_HANDLER(int signal);
-
-
-// Cria um novo processo a partir do escalonador e retorna o pid dele.
 int InicializaProcesso (char** args) {
     int pid;
         
@@ -64,8 +50,9 @@ int InicializaProcesso (char** args) {
         executando->pid = pid;
         sleep(QUANTUM);
 		kill(pid, SIGSTOP);
+
 	}
-	return executando->pid;
+	return pid;
 }
 
 
@@ -81,7 +68,10 @@ int main (){
     strcpy(prog, ""); 
 
     signal(SIGUSR1, IO_HANDLER);
+    signal(SIGALRM, IO_HANDLER);
 
+    fila_espera = CriaFila();
+    fila_prontos = CriaFila();
     if ((id = fork()) < 0) { // Cria INTERPRETADOR e ESCALONADOR
         
 		printf("Erro na criação do novo processo\n");
@@ -99,9 +89,7 @@ int main (){
         fclose(programas);
 
 	} else { // ESCALONADOR (pai)
-        Fila* fila_prontos = CriaFila();
-        Fila* fila_espera = CriaFila();  
-        char prog_exec[22];
+        char prog_exec[12];
         int pid;
         while(1) {
             if (strlen(prog) != 0){  // Adiciona processo à lista de prontos
@@ -109,56 +97,46 @@ int main (){
 
                 Processo* processo = CriaProcesso(1, prog); // Criacao da struct processo - pid default 1
                 InsereProcesso(fila_prontos, CopiaProcesso(processo));
-                // printa_fila(fila_prontos);
                 strcpy(ultimo_prog, prog);
                 strcpy(prog, "");
 
             }
-            if(fila_espera->num_elementos > 0){
-                Processo* sai_espera = fila_espera->primeiro_no;
-                if(sai_espera -> status == 1){
-                    printf("Colocando %s na fila de prontos\n", sai_espera->programa);
-                    InsereProcesso(fila_prontos, CopiaProcesso(sai_espera));
-                    // printa_fila(fila_prontos);
-                }
-            }
+
             if (fila_prontos->num_elementos > 0){
+                executando = NULL;
                 executando = RemoveProcesso(fila_prontos);
 
                 if (executando->status == 0){ //  Inicializa novo processo
-                    char nome[9];
-                    strcpy(nome,executando->programa);
-                    printf("%s vai ser inicializado\n",nome);//ta dando erro n sei pq
+                    char nome[10];
+                    strcpy(nome, executando->programa);
+                    printf("%s vai ser inicializado\n", nome);
                     strcpy(prog_exec, "./");
                     strcat(prog_exec, nome);
                     char* args[2]= {prog_exec, NULL};
 
                     pid = InicializaProcesso(args); // execucao do fork()
-                    if(pid < 0){
-                        executando = NULL;
-                    } else {
-                        executando->pid = pid;
+                    executando->pid = pid;
+
+                    if (executando->status != 2) {
                         executando->status = 1;
                         InsereProcesso(fila_prontos, CopiaProcesso(executando));
                     }
-                    printa_fila(fila_prontos);
-                    
-                } else if (executando->status == 1 ) { // Continua execução do processo
-                    int b = kill(executando->pid, 0);
+
+                } else if (executando->status == 1) { // Continua execução do processo
                     printf("processo %s vai continuar\n", executando->programa);
                     kill(executando->pid, SIGCONT);
                     sleep(QUANTUM);
                     kill(executando->pid, SIGSTOP);
-
                     printf("processo %s vai para fim da fila\n", executando->programa);
                     
                     if (executando != NULL){
                         InsereProcesso(fila_prontos, CopiaProcesso(executando)); 
                     }
-                    printa_fila(fila_prontos);
                 } else {
                     break;
                 }
+                printa_fila(fila_prontos);
+                printf("-----------------------------------------------------\n");
             }
         }
 	}
@@ -168,11 +146,18 @@ int main (){
     return 0;
 }
 
-void ALARM_HANDLER(int signal) {
+void IO_HANDLER(int signal) {
     // Processo* processo_removido = RemoveProcesso(fila_espera);
-    // if (processo_removido) {
-    //     InsereProcesso(fila_prontos, CopiaProcesso(processo_removido));
-    // }
-    // free(processo_removido);
-    printf("sigttou\n");
+    if (signal == SIGUSR1) {
+        kill(executando->pid, SIGSTOP);
+        executando->status = 2;
+        printf("%s entrou na fila de espera\n", executando->programa);
+        InsereProcesso(fila_espera, CopiaProcesso(executando));
+        alarm(3);
+    } else if (signal == SIGALRM) {
+        Processo* retirado = RemoveProcesso(fila_espera);
+        printf("%s terminou seu IO\n", retirado->programa);
+        retirado->status = 1;
+        InsereProcesso(fila_prontos, CopiaProcesso(retirado));
+    }
 }

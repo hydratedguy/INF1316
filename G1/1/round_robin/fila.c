@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-enum status {NOVO, PRONTO, ESPERA, EXECUTANDO};
+enum status {NOVO, PRONTO, IO};
 typedef struct fila Fila;
 typedef struct processo Processo;
 
@@ -99,5 +99,6 @@ Processo* RemoveProcesso(Fila* f){
 
     
     return retirado;
+        return retirado;
 }
 
