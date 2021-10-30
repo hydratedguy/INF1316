@@ -21,7 +21,6 @@ struct processo {
 
 
 void printa_fila(Fila* f){
-    printf("Fila \n");
     for (Processo* p = f->primeiro_no; p != NULL; p = p->proximo_no) {
         printf("%s, ", p->programa);
     }
@@ -38,7 +37,7 @@ Processo* CriaProcesso(int pid, char* programa){
 }
 
  Fila* CriaFila(){
-    Fila* f = (Fila*) malloc (sizeof( Fila));
+    Fila* f = (Fila*) malloc (sizeof(Fila));
     f->num_elementos = 0;
     f->primeiro_no = NULL;
     f->ultimo_no = NULL;
@@ -73,7 +72,6 @@ void InsereProcesso(Fila* f, Processo* p){
 Processo* RemoveProcesso(Fila* f){
     
     if(f->num_elementos <= 0) {
-        printf("num elementos da fila = %d\n", f->num_elementos);
         return NULL;
     }
 

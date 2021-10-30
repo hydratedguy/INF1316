@@ -108,7 +108,7 @@ int main (){
 
 	} else if (id == 0) { // INTERPRETADOR (filho)
         FILE* programas;
-        programas = fopen("programas.txt", "r");
+        programas = fopen("exec.txt", "r");
         if (programas == NULL){
             printf("error ao abrir programas\n");
             exit(0);
@@ -222,7 +222,7 @@ int main (){
                         executando = executando->proximo_no;
                     }
                 }
-            } else {// Ocio 
+            } else {// CPU OCIOSA 
                 T_ATUAL += 1;
                 printf("\n");
                 sleep(1);

@@ -1,8 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// CPU BOUND
+// IO BOUND
 
 int main(){
-    while(1);
+    while (1){
+        printf("programa4 mandará sinal\n");
+        kill(getppid(), SIGUSR1); 
+        printf("programa4 mandou sinal\n");
+    }    
 }
