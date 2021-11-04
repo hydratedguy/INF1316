@@ -126,14 +126,16 @@ int main (){
                     printf("processo %s vai continuar\n", executando->programa);
                     kill(executando->pid, SIGCONT);
                     sleep(QUANTUM);
-                    kill(executando->pid, SIGSTOP);
-                    printf("processo %s vai para fim da fila\n", executando->programa);
-                    
-                    if (executando != NULL){
-                        InsereProcesso(fila_prontos, CopiaProcesso(executando)); 
+                    if (executando->status != 2) {
+                        kill(executando->pid, SIGSTOP);
+                        printf("processo %s vai para fim da fila\n", executando->programa);
+                        
+                        if (executando != NULL){
+                            InsereProcesso(fila_prontos, CopiaProcesso(executando)); 
+                        }
                     }
                 } else {
-                    break;
+                    continue;
                 }
                 printa_fila(fila_prontos);
                 printf("-----------------------------------------------------\n");

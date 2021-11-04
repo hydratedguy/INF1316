@@ -1,4 +1,3 @@
-Run < programa1 >
-Run < programa2 >
 Run < programa3 >
-Run < programa4 >
+Run < programa2 >
+Run < programa1 >

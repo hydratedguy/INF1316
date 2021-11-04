@@ -7,9 +7,10 @@
 
 int main(){
     while (1){
-        printf("programa1 requisitou I/O\n");
+        printf("programa3 requisitou I/O\n");
         kill(getppid(), SIGUSR1);
+        sleep(2);
+        printf("Executando programa 3\n");
         sleep(1);
-        printf("programa 1 esta executando\n");
     }
 }
